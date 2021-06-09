@@ -66,11 +66,15 @@ app.get('/usage',(req,res)=>{
 app.get("/getrates",async(req,res)=>{
       const from=req.query.from;
       const to=req.query.to;
+      if(!from || !to){
+          res.json({"success":false,"msg":"Invalid Arguments"})
+          return;
+      }
       const key=from+"_"+to;
  try {
 
      if(rates[key] && new Date()-rates[key].time<60*60*1000){//updates every hour
-       res.json({"base":from,"to":to,"rate":rates[key].rate,source:"cache",lastUpdate:rates[key].time});
+       res.json({"success":true,"base":from,"to":to,"rate":rates[key].rate,source:"cache",lastUpdate:rates[key].time});
      }
      else{
         const rate=await getrate(from,to);
@@ -79,12 +83,13 @@ app.get("/getrates",async(req,res)=>{
             rate:parseFloat(rate.replace(/,/g,'')),
             time:new Date(),
         }
-        res.json({"base":from,"to":to,"rate":rates[key].rate,source:"API"});
+        res.json({"success":true,"base":from,"to":to,"rate":rates[key].rate,source:"API"});
      }
      
     
      
  } catch (error) {
+     res.json({"msg":"error","success":false})
      throw error;
  }
       
